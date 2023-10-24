@@ -1,2 +1,2 @@
 # PlantTracerML
-Machine learning based Plant Tracer.
+Machine Learning based Plant Tracer.
