@@ -16,7 +16,6 @@ import pandas as pd
 # import sysconfig
 
 
-
 ##define the network##
 
 class single_conv(nn.Module):
@@ -181,7 +180,7 @@ def Select_File():
     global file_path,label1,selected_video,cap,height,width,image,canvas,displayed_frame,fps_of_video,coordinates,rval,frame
     global MyModel,search_range,search_range2,Threshold_pick_piexls,Threshold_outliners,pick_range,confidence_threshold,learnning_rate
     global scales,label2,frame_interval,m_standard,update_decay,time_threshold
-    file_path = filedialog.askopenfilename(title='Select video')
+    file_path = filedialog.askopenfilename(title='Select video') # should work now; unless you want to select a new video.... then we will need a way to reset file_path to the default value before calling this function
     cap = cv2.VideoCapture(file_path)
     height,width=int(cap.get(4)),int(cap.get(3))
     rval, frame = cap.read()
@@ -317,13 +316,14 @@ def start_track():
             win.update()
             coordinates.append(coordinate)
             num+=1
+
         else:
             cap.release()
             break
         rval, frame = cap.read()
     tracking=False
     button5.grid_forget()
-    button4.grid(row=1,column=2,sticky=TK.W,padx=20,pady=10)
+    resetbutton.grid(row=1,column=2,sticky=TK.W,padx=20,pady=10)
 
 ## stop tracking##
 def stop_track():
@@ -331,12 +331,52 @@ def stop_track():
     if tracking:
         stop_tracking=True
         button5.grid_forget()
-        button4.grid(row=1,column=2,sticky=TK.W,padx=20,pady=10)
+        resetbutton.grid(row=1,column=2,sticky=TK.W,padx=20,pady=10)
     else:
         return
 
+def Reset_video():
+    if tracking:
+        return
+    elif enable_selection or enable_selection2 or enable_selection3 or enable_selection4:
+        return
+    global file_path,label1,selected_video,cap,height,width,image,canvas,displayed_frame,fps_of_video,coordinates,rval,frame
+    global MyModel,search_range,search_range2,Threshold_pick_piexls,Threshold_outliners,pick_range,confidence_threshold,learnning_rate
+    global scales,label2,frame_interval,m_standard,update_decay,time_threshold
+    if file_path == "Please select a video to track":#if file path unknown, ask one
+        file_path = filedialog.askopenfilename(title='Select video') # should work now; unless you want to select a new video.... then we will need a way to reset file_path to the default value before calling this function
+    cap = cv2.VideoCapture(file_path)
+    height,width=int(cap.get(4)),int(cap.get(3))
+    rval, frame = cap.read()
 
-
+    if rval==True:
+        if Enable_color_filter.get():
+            image=ImageTk.PhotoImage(Image.fromarray(color_filter(cv2.cvtColor(frame,cv2.COLOR_BGR2RGB))))
+        else:
+            image=ImageTk.PhotoImage(Image.fromarray(cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)))
+        displayed_frame=canvas.create_image(width//2, height//2, image=image)
+        selected_video=True
+        label1.config(text=file_path)
+        canvas.config(width=width, height=height)
+        m_standard=torch.load(model_save_path+'MyModel_%d_%d_epoch3_^.pth'%(level,thickness))
+        MyModel.load_state_dict(m_standard)
+        fps_of_video=[]
+        coordinates=[]
+        search_range=deside_search_range()
+        search_range2=40
+        Threshold_pick_piexls=0.75
+        pick_range=15
+        Threshold_outliners=pick_range 
+        confidence_threshold=0.95
+        learnning_rate=0.14
+        update_decay=0.1
+        time_threshold=4
+        scales=None
+        frame_interval=None
+        label2.grid_forget()
+        label3.grid_forget()
+        resetbutton.grid_forget()
+        button4.grid(row=1,column=2,sticky=TK.W,padx=20,pady=10)
 
 ## These functions is used to draw a box in the canvas to select the apex ##
 
@@ -657,7 +697,7 @@ def Save_the_result():
 #create the network and load parameters#
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-model_save_path='./model/'
+model_save_path = './model/'
 thickness=32
 level=4
 try:
@@ -700,6 +740,7 @@ tracking=False
 stop_tracking=False
 Enable_color_filter=TK.IntVar()
 file_path="Please select a video to track"
+video_path=""
 boxframe1 = TK.Frame(win, relief="sunken")
 boxframe2 = TK.Frame(win, relief="sunken",borderwidth=1)
 boxframe3 = TK.Frame(win, relief="sunken",borderwidth=1)
@@ -724,6 +765,7 @@ button12=TK.Button(boxframe6 ,text="Frame interval",command=Frame_interval_1)
 button13=TK.Button(boxframe6 ,text="Enter the interval (second)",command=Frame_interval_2)
 button14=TK.Button(boxframe4 ,text="Plot the graphs",command=Plot_the_graphs)
 button15=TK.Button(boxframe4 ,text="Save the result",command=Save_the_result)
+resetbutton=TK.Button(boxframe4 ,text="Reset",command=Reset_video)
 Checkbutton1 = TK.Checkbutton(boxframe3, text='Enable color filter', variable=Enable_color_filter, onvalue=1, offvalue=0,)
 entry1=TK.Entry(boxframe5,width=14)
 entry2=TK.Entry(boxframe6,width=14)
