@@ -376,7 +376,9 @@ def Reset_video():
         label2.grid_forget()
         label3.grid_forget()
         resetbutton.grid_forget()
-        button4.grid(row=1,column=2,sticky=TK.W,padx=20,pady=10)
+        # TODO: should we destroy button4 here?
+        trackbutton = TK.Button(boxframe4 ,text="Track",command=start_track)
+        trackbutton.grid(row=1,column=2,sticky=TK.W,padx=20,pady=10)
 
 ## These functions is used to draw a box in the canvas to select the apex ##
 
