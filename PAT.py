@@ -15,6 +15,8 @@ from matplotlib.figure import Figure
 import pandas as pd
 # import sysconfig
 
+# constants
+FILE_PROMPT = "Please select a video to track"
 
 ##define the network##
 
@@ -180,11 +182,11 @@ def Select_File():
     global file_path,label1,selected_video,cap,height,width,image,canvas,displayed_frame,fps_of_video,coordinates,rval,frame
     global MyModel,search_range,search_range2,Threshold_pick_piexls,Threshold_outliners,pick_range,confidence_threshold,learnning_rate
     global scales,label2,frame_interval,m_standard,update_decay,time_threshold
-    file_path = filedialog.askopenfilename(title='Select video') # should work now; unless you want to select a new video.... then we will need a way to reset file_path to the default value before calling this function
+    if file_path == FILE_PROMPT :#if file path unknown, ask one
+        file_path = filedialog.askopenfilename(title='Select video') # should work now; unless you want to select a new video.... then we will need a way to reset file_path to the default value before calling this function
     cap = cv2.VideoCapture(file_path)
     height,width=int(cap.get(4)),int(cap.get(3))
     rval, frame = cap.read()
-    # resize the frame here -- YIXIANG
 
     if rval==True:
         if Enable_color_filter.get():
@@ -195,7 +197,6 @@ def Select_File():
         selected_video=True
         label1.config(text=file_path)
         canvas.config(width=width, height=height)
-        # m_standard=torch.load('MyModel_%d_%d_epoch3_^.pth'%(level,thickness))
         m_standard=torch.load(model_save_path+'MyModel_%d_%d_epoch3_^.pth'%(level,thickness))
         MyModel.load_state_dict(m_standard)
         fps_of_video=[]
@@ -336,49 +337,11 @@ def stop_track():
         return
 
 def Reset_video():
-    if tracking:
-        return
-    elif enable_selection or enable_selection2 or enable_selection3 or enable_selection4:
-        return
-    global file_path,label1,selected_video,cap,height,width,image,canvas,displayed_frame,fps_of_video,coordinates,rval,frame
-    global MyModel,search_range,search_range2,Threshold_pick_piexls,Threshold_outliners,pick_range,confidence_threshold,learnning_rate
-    global scales,label2,frame_interval,m_standard,update_decay,time_threshold
-    if file_path == "Please select a video to track":#if file path unknown, ask one
-        file_path = filedialog.askopenfilename(title='Select video') # should work now; unless you want to select a new video.... then we will need a way to reset file_path to the default value before calling this function
-    cap = cv2.VideoCapture(file_path)
-    height,width=int(cap.get(4)),int(cap.get(3))
-    rval, frame = cap.read()
-
-    if rval==True:
-        if Enable_color_filter.get():
-            image=ImageTk.PhotoImage(Image.fromarray(color_filter(cv2.cvtColor(frame,cv2.COLOR_BGR2RGB))))
-        else:
-            image=ImageTk.PhotoImage(Image.fromarray(cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)))
-        displayed_frame=canvas.create_image(width//2, height//2, image=image)
-        selected_video=True
-        label1.config(text=file_path)
-        canvas.config(width=width, height=height)
-        m_standard=torch.load(model_save_path+'MyModel_%d_%d_epoch3_^.pth'%(level,thickness))
-        MyModel.load_state_dict(m_standard)
-        fps_of_video=[]
-        coordinates=[]
-        search_range=deside_search_range()
-        search_range2=40
-        Threshold_pick_piexls=0.75
-        pick_range=15
-        Threshold_outliners=pick_range 
-        confidence_threshold=0.95
-        learnning_rate=0.14
-        update_decay=0.1
-        time_threshold=4
-        scales=None
-        frame_interval=None
-        label2.grid_forget()
-        label3.grid_forget()
-        resetbutton.grid_forget()
-        # TODO: should we destroy button4 here?
-        trackbutton = TK.Button(boxframe4 ,text="Track",command=start_track)
-        trackbutton.grid(row=1,column=2,sticky=TK.W,padx=20,pady=10)
+    Select_File()
+    resetbutton.grid_forget()
+    # recreate the Track button so it will re-display (is there a better way?)
+    trackbutton = TK.Button(boxframe4 ,text="Track",command=start_track)
+    trackbutton.grid(row=1,column=2,sticky=TK.W,padx=20,pady=10)
 
 ## These functions is used to draw a box in the canvas to select the apex ##
 
@@ -741,7 +704,7 @@ selecting=False
 tracking=False
 stop_tracking=False
 Enable_color_filter=TK.IntVar()
-file_path="Please select a video to track"
+file_path= FILE_PROMPT
 video_path=""
 boxframe1 = TK.Frame(win, relief="sunken")
 boxframe2 = TK.Frame(win, relief="sunken",borderwidth=1)
