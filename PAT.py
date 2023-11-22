@@ -657,7 +657,7 @@ def Save_the_result():
 #create the network and load parameters#
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-model_save_path='/Users/Shared/'  #'/Users/yixiangmao/Documents/PlantTracerProject/Hejian/src/model/' './model/'
+model_save_path='./model/'
 thickness=32
 level=4
 try:
@@ -752,3 +752,4 @@ boxframe4.grid(row=3,column=1,columnspan=2,sticky=TK.EW)
 boxframe5.grid(row=3,column=1,sticky=TK.EW)
 boxframe6.grid(row=4,column=1,sticky=TK.EW)
 win.mainloop()
+
