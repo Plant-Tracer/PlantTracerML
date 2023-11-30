@@ -1,24 +1,23 @@
+"""PAT is a standalone program to track circumnutation using a trained U-Net model"""
+
+import time
+import tkinter as TK
+from tkinter import filedialog
+
 import numpy as np
 import cv2
 import torch
 import torch.nn as nn
-import time
 from PIL import Image,ImageTk
-import tkinter as TK
-from tkinter import filedialog
-# import matplotlib
-# matplotlib.use("TkAgg")
-import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg, NavigationToolbar2Tk)
 from matplotlib.figure import Figure
 import pandas as pd
-# import sysconfig
 
 # constants
 FILE_PROMPT = "Please select a video to track"
 
-##define the network##
+"""define the network"""
 
 class single_conv(nn.Module):
     def __init__(self, in_ch, out_ch):
@@ -90,27 +89,25 @@ class MyNet_4(nn.Module):
         
 
     def forward(self, x):
-            x1=self.conv1(x)
-            x2=self.down(x1)
-            x2=self.conv2(x2)
-            x3=self.down(x2)
-            x3=self.conv3(x3)
-            x4=self.down(x3)
-            x4=self.conv6(x4)
-            x3=self.up(x4,x3)
-            del x4
-            x3=self.conv7(x3)
-            x2=self.up(x3,x2)
-            del x3
-            x2=self.conv4(x2)
-            x1=self.up(x2,x1)
-            del x2
-            x1=self.conv5(x1)
-            x1=self.out(x1).squeeze(1)
+        x1=self.conv1(x)
+        x2=self.down(x1)
+        x2=self.conv2(x2)
+        x3=self.down(x2)
+        x3=self.conv3(x3)
+        x4=self.down(x3)
+        x4=self.conv6(x4)
+        x3=self.up(x4,x3)
+        del x4
+        x3=self.conv7(x3)
+        x2=self.up(x3,x2)
+        del x3
+        x2=self.conv4(x2)
+        x1=self.up(x2,x1)
+        del x2
+        x1=self.conv5(x1)
+        x1=self.out(x1).squeeze(1)
 
-            return x1
-
-
+        return x1
 
 ##get the coordinate of the apex from the mask, the output of the network##
 
@@ -130,8 +127,6 @@ def get_coordinate(mask,Thre=30,select_mode='mean'):
     
     return coordinate
 
-
-
 ##locate the search range2. ingore the pixel out of the search range2##
 
 def locate_search_range(mask_,search_range,coordinate):
@@ -141,8 +136,6 @@ def locate_search_range(mask_,search_range,coordinate):
                     max(search_center[0]-search_range,0):min(search_center[0]+search_range+1,mask_.shape[1])]=1
     mask_=mask_*search_mask
     return mask_
-
-
 
 ##color filter to remove pixels of non-plant##
 
@@ -154,7 +147,6 @@ def color_filter(image):
     for i in [0,1,2]:
         image[:,:,i]=image[:,:,i]*(mask_g+mask_w)
     return image
-
 
 ## determine the search_range1##
 
@@ -170,7 +162,6 @@ def deside_search_range():
     else:
         return 100
     return
-
 
 ## open the video to analyse and initialize some parameters##
 
@@ -214,8 +205,6 @@ def Select_File():
         frame_interval=None
         label2.grid_forget()
         label3.grid_forget()
-
-
 
 ## start to track the apex##
 
@@ -345,7 +334,6 @@ def Reset_video():
 
 ## These functions is used to draw a box in the canvas to select the apex ##
 
-
 def Select_apex1():
     if tracking or not selected_video:
         return
@@ -372,8 +360,6 @@ def Select_apex2():
             Threshold_outliners=pick_range
         selected_apex=True
         selection_finished=False
-
-
 
 ## These functions is used to draw a box in the canvas to decide the search range 1 ##
 
@@ -402,9 +388,6 @@ def search_range_1_2():
         canvas.delete(lastDraw)
         selection_finished=False
 
-
-
-
 ## These functions is used to draw a box in the canvas to decide the search range 2 ##
 
 def search_range_2_1():
@@ -432,7 +415,6 @@ def search_range_2_2():
         canvas.delete(lastDraw)
         selection_finished=False
 
-
 ## These functions is used to map the scales in frames to in the real world ##
 
 def Scale_1():
@@ -447,6 +429,7 @@ def Scale_1():
     entry1.delete(0,"end")
     entry1.grid(row=2,column=1,sticky=TK.W,padx=20)
     label2.grid_forget()   
+
 def Scale_2():
     if tracking or not selected_video:
         return
@@ -468,8 +451,7 @@ def Scale_2():
         label2.config(text="Scales = %.3f mm/pixel"%(scales))
         label2.grid(row=2,column=1,sticky=TK.W,padx=20)
 
-
-## These functions is used to map the frame interval to the time in the real world ##
+## These functions are used to map the frame interval to the time in the real world ##
 
 def Frame_interval_1():
     if tracking or not selected_video:
@@ -481,6 +463,7 @@ def Frame_interval_1():
     entry2.delete(0,"end")
     entry2.grid(row=2,column=1,sticky=TK.W,padx=20)
     label3.grid_forget()   
+
 def Frame_interval_2():
     if tracking or not selected_video:
         return
@@ -498,8 +481,6 @@ def Frame_interval_2():
         label3.config(text="Frame interval = %.1f s/frame"%(frame_interval))
         label3.grid(row=2,column=1,sticky=TK.W,padx=20)
 
-
-
 ## These functions help some functions above draw the figure in the canvas ##
 
 def onLeftButtonDown(event):
@@ -513,6 +494,7 @@ def onLeftButtonDown(event):
     s_X.set(event.x)
     s_Y.set(event.y)
     selecting = True
+
 def onLeftButtonMove(event):
     global lastDraw
     if (not selecting) or tracking:
@@ -535,6 +517,7 @@ def onLeftButtonMove(event):
         lastDraw = canvas.create_line(s_X.get(), s_Y.get(), event.x, event.y, fill=color)
     else:
         lastDraw = canvas.create_rectangle(s_X.get(), s_Y.get(), event.x, event.y, outline=color)
+
 def onLeftButtonUp(event):
     global selecting,selected_area,enable_selection,selection_finished
     if tracking:
@@ -546,8 +529,6 @@ def onLeftButtonUp(event):
     myleft, myright = sorted([s_X.get(), event.x])
     mytop, mybottom = sorted([s_Y.get(), event.y])
     selected_area=(myleft,myright,mytop,mybottom)
-
-
 
 ##plot the graphs of the result ##
 
@@ -590,8 +571,6 @@ def Y_vs_X():
     create_fig(fig3)
     return
 
-
-
 ##plot the graphs of the result ##
 
 def Plot_the_graphs():
@@ -630,8 +609,6 @@ def Plot_the_graphs():
     graph.grab_set()
     return
 
-
-
 ##save the result of tracking##
 
 def Save_the_result():
@@ -657,8 +634,6 @@ def Save_the_result():
     csv_file.to_csv(save_path, sep=",",index=False)
     return
 
-
-
 #create the network and load parameters#
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -671,10 +646,6 @@ except:
     device = torch.device("cpu")
     MyModel=MyNet_4(32).to(device)
 MyModel.load_state_dict(torch.load(model_save_path+'MyModel_%d_%d_epoch3_^.pth'%(level,thickness))) 
-# MyModel.load_state_dict(torch.load('MyModel_%d_%d_epoch3_^.pth'%(level,thickness))) 
-
-
-
 
 #create the UI#
 
@@ -759,4 +730,3 @@ boxframe4.grid(row=3,column=1,columnspan=2,sticky=TK.EW)
 boxframe5.grid(row=3,column=1,sticky=TK.EW)
 boxframe6.grid(row=4,column=1,sticky=TK.EW)
 win.mainloop()
-
