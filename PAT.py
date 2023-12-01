@@ -1,5 +1,6 @@
 """PAT is a standalone program to track circumnutation using a trained U-Net model"""
 
+import argparse
 import time
 import tkinter as TK
 from tkinter import filedialog
@@ -171,7 +172,7 @@ def Select_File():
     elif enable_selection or enable_selection2 or enable_selection3 or enable_selection4:
         return
     global file_path,label1,selected_video,cap,height,width,image,canvas,displayed_frame,fps_of_video,coordinates,rval,frame
-    global MyModel,search_range,search_range2,Threshold_pick_piexls,Threshold_outliners,pick_range,confidence_threshold,learnning_rate
+    global MyModel,search_range,search_range2,Threshold_pick_piexls,Threshold_outliners,pick_range,confidence_threshold,learning_rate
     global scales,label2,frame_interval,m_standard,update_decay,time_threshold
     if file_path == FILE_PROMPT :#if file path unknown, ask one
         file_path = filedialog.askopenfilename(title='Select video') # should work now; unless you want to select a new video.... then we will need a way to reset file_path to the default value before calling this function
@@ -198,7 +199,7 @@ def Select_File():
         pick_range=15
         Threshold_outliners=pick_range 
         confidence_threshold=0.95
-        learnning_rate=0.14
+        learning_rate=0.14
         update_decay=0.1
         time_threshold=4
         scales=None
@@ -266,7 +267,7 @@ def start_track():
                     confidence=Loss.forward(mask,mask_updater)
                 if confidence>confidence_threshold:
                     print(confidence)
-                    Optimizer=torch.optim.SGD(MyModel.parameters(),learnning_rate,momentum=0.9,weight_decay=0.0005)
+                    Optimizer=torch.optim.SGD(MyModel.parameters(),learning_rate,momentum=0.9,weight_decay=0.0005)
                     t_start=time.time()
                     while (1):
                         if time.time()-t_start>time_threshold:
@@ -634,99 +635,112 @@ def Save_the_result():
     csv_file.to_csv(save_path, sep=",",index=False)
     return
 
-#create the network and load parameters#
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-model_save_path = './model/'
-thickness=32
-level=4
-try:
-    MyModel=MyNet_4(32).to(device)
-except:
-    device = torch.device("cpu")
-    MyModel=MyNet_4(32).to(device)
-MyModel.load_state_dict(torch.load(model_save_path+'MyModel_%d_%d_epoch3_^.pth'%(level,thickness))) 
+if __name__ == "__main__":
 
-#create the UI#
+    # handle command line arguments
+    parser = argparse.ArgumentParser(description="Track plant motion with a machine learning model",
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-win=TK.Tk()        
-win.title('Plant Apex Track')
-fps_of_video=[]
-coordinates=[]
-search_range=100
-search_range2=40
-Threshold_pick_piexls=0.75
-pick_range=15
-Threshold_outliners=pick_range 
-confidence_threshold=0.95
-learnning_rate=0.14
-update_decay=0.1
-time_threshold=4
-scales=None
-frame_interval=None
-selected_video=False
-enable_selection=False
-enable_selection2=False
-enable_selection3=False
-enable_selection4=False
-selected_apex=False
-selection_finished=False
-selecting=False
-tracking=False
-stop_tracking=False
-Enable_color_filter=TK.IntVar()
-file_path= FILE_PROMPT
-video_path=""
-boxframe1 = TK.Frame(win, relief="sunken")
-boxframe2 = TK.Frame(win, relief="sunken",borderwidth=1)
-boxframe3 = TK.Frame(win, relief="sunken",borderwidth=1)
-boxframe4 = TK.Frame(win, relief="sunken",borderwidth=1)
-boxframe5 = TK.Frame(boxframe3)
-boxframe6 = TK.Frame(boxframe3)
-label1 = TK.Label(boxframe1, text = file_path)
-label2= TK.Label(boxframe5)
-label3= TK.Label(boxframe6)
-button1 = TK.Button(boxframe1 ,text="Select video",command=Select_File)
-button2 = TK.Button(boxframe4 ,text="Select apex",command=Select_apex1)
-button3 = TK.Button(boxframe4 ,text="Confirm",command=Select_apex2)
-button4 = TK.Button(boxframe4 ,text="Track",command=start_track)
-button5=TK.Button(boxframe4 ,text="Stop",command=stop_track)
-button6=TK.Button(boxframe3 ,text="Search range 1",command=search_range_1_1)
-button7=TK.Button(boxframe3 ,text="Confirm",command=search_range_1_2)
-button8=TK.Button(boxframe3 ,text="Search range 2",command=search_range_2_1)
-button9=TK.Button(boxframe3 ,text="Confirm",command=search_range_2_2)
-button10=TK.Button(boxframe5 ,text="Scale(draw a line)",command=Scale_1)
-button11=TK.Button(boxframe5 ,text="Enter the length (mm)",command=Scale_2)
-button12=TK.Button(boxframe6 ,text="Frame interval",command=Frame_interval_1)
-button13=TK.Button(boxframe6 ,text="Enter the interval (second)",command=Frame_interval_2)
-button14=TK.Button(boxframe4 ,text="Plot the graphs",command=Plot_the_graphs)
-button15=TK.Button(boxframe4 ,text="Save the result",command=Save_the_result)
-resetbutton=TK.Button(boxframe4 ,text="Reset",command=Reset_video)
-Checkbutton1 = TK.Checkbutton(boxframe3, text='Enable color filter', variable=Enable_color_filter, onvalue=1, offvalue=0,)
-entry1=TK.Entry(boxframe5,width=14)
-entry2=TK.Entry(boxframe6,width=14)
-canvas = TK.Canvas(boxframe2)
-canvas.bind('<Button-1>', onLeftButtonDown)
-canvas.bind('<B1-Motion>', onLeftButtonMove)
-canvas.bind('<ButtonRelease-1>', onLeftButtonUp)
-win.grid_columnconfigure(0,weight=0)
-win.grid_rowconfigure(0,weight=0)
-canvas.grid(row=1,column=1,padx=20,pady=10)
-label1.grid(row=1,column=2,sticky=TK.W,padx=20,pady=10)
-button1.grid(row=1,column=1,sticky=TK.W,padx=20,pady=10)
-button2.grid(row=1,column=1,sticky=TK.W,padx=20,pady=10)
-button4.grid(row=1,column=2,sticky=TK.W,padx=20,pady=10)
-button6.grid(row=1,column=1,sticky=TK.W,padx=20,pady=10)
-button8.grid(row=2,column=1,sticky=TK.W,padx=20,pady=10)
-button10.grid(row=1,column=1,sticky=TK.W,padx=20,pady=10)
-button12.grid(row=1,column=1,sticky=TK.W,padx=20,pady=10)
-button14.grid(row=1,column=3,sticky=TK.W,padx=20,pady=10)
-button15.grid(row=1,column=4,sticky=TK.W,padx=20,pady=10)
-Checkbutton1.grid(row=5,column=1,sticky=TK.W,padx=20,pady=10)
-boxframe1.grid(row=1,column=1,columnspan=2,sticky=TK.EW)
-boxframe2.grid(row=2,column=1,sticky=TK.W)
-boxframe3.grid(row=2,column=2,sticky=TK.NS)
-boxframe4.grid(row=3,column=1,columnspan=2,sticky=TK.EW)
-boxframe5.grid(row=3,column=1,sticky=TK.EW)
-boxframe6.grid(row=4,column=1,sticky=TK.EW)
-win.mainloop()
+    # parser.add_argument(
+    #    "--moviefile", default='Circ 1.MP4', help='mpeg4 file to process')
+    parser.add_argument(
+        "--modelpath", default='./model/', help="path to motion tracking model")
+    args = parser.parse_args()
+
+    #create the network and load parameters#
+
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    model_save_path = args.modelpath
+    thickness=32
+    level=4
+    try:
+        MyModel=MyNet_4(32).to(device)
+    except:
+        device = torch.device("cpu")
+        MyModel=MyNet_4(32).to(device)
+    MyModel.load_state_dict(torch.load(model_save_path+'MyModel_%d_%d_epoch3_^.pth'%(level,thickness))) 
+
+    #create the UI#
+
+    win=TK.Tk()        
+    win.title('Plant Apex Track')
+    fps_of_video=[]
+    coordinates=[]
+    search_range=100
+    search_range2=40
+    Threshold_pick_piexls=0.75
+    pick_range=15
+    Threshold_outliners=pick_range 
+    confidence_threshold=0.95
+    learning_rate=0.14
+    update_decay=0.1
+    time_threshold=4
+    scales=None
+    frame_interval=None
+    selected_video=False
+    enable_selection=False
+    enable_selection2=False
+    enable_selection3=False
+    enable_selection4=False
+    selected_apex=False
+    selection_finished=False
+    selecting=False
+    tracking=False
+    stop_tracking=False
+    Enable_color_filter=TK.IntVar()
+    file_path= FILE_PROMPT
+    video_path=""
+    boxframe1 = TK.Frame(win, relief="sunken")
+    boxframe2 = TK.Frame(win, relief="sunken",borderwidth=1)
+    boxframe3 = TK.Frame(win, relief="sunken",borderwidth=1)
+    boxframe4 = TK.Frame(win, relief="sunken",borderwidth=1)
+    boxframe5 = TK.Frame(boxframe3)
+    boxframe6 = TK.Frame(boxframe3)
+    label1 = TK.Label(boxframe1, text = file_path)
+    label2= TK.Label(boxframe5)
+    label3= TK.Label(boxframe6)
+    button1 = TK.Button(boxframe1 ,text="Select video",command=Select_File)
+    button2 = TK.Button(boxframe4 ,text="Select apex",command=Select_apex1)
+    button3 = TK.Button(boxframe4 ,text="Confirm",command=Select_apex2)
+    button4 = TK.Button(boxframe4 ,text="Track",command=start_track)
+    button5=TK.Button(boxframe4 ,text="Stop",command=stop_track)
+    button6=TK.Button(boxframe3 ,text="Search range 1",command=search_range_1_1)
+    button7=TK.Button(boxframe3 ,text="Confirm",command=search_range_1_2)
+    button8=TK.Button(boxframe3 ,text="Search range 2",command=search_range_2_1)
+    button9=TK.Button(boxframe3 ,text="Confirm",command=search_range_2_2)
+    button10=TK.Button(boxframe5 ,text="Scale(draw a line)",command=Scale_1)
+    button11=TK.Button(boxframe5 ,text="Enter the length (mm)",command=Scale_2)
+    button12=TK.Button(boxframe6 ,text="Frame interval",command=Frame_interval_1)
+    button13=TK.Button(boxframe6 ,text="Enter the interval (second)",command=Frame_interval_2)
+    button14=TK.Button(boxframe4 ,text="Plot the graphs",command=Plot_the_graphs)
+    button15=TK.Button(boxframe4 ,text="Save the result",command=Save_the_result)
+    resetbutton=TK.Button(boxframe4 ,text="Reset",command=Reset_video)
+    Checkbutton1 = TK.Checkbutton(boxframe3, text='Enable color filter', variable=Enable_color_filter, onvalue=1, offvalue=0,)
+    entry1=TK.Entry(boxframe5,width=14)
+    entry2=TK.Entry(boxframe6,width=14)
+    canvas = TK.Canvas(boxframe2)
+    canvas.bind('<Button-1>', onLeftButtonDown)
+    canvas.bind('<B1-Motion>', onLeftButtonMove)
+    canvas.bind('<ButtonRelease-1>', onLeftButtonUp)
+    win.grid_columnconfigure(0,weight=0)
+    win.grid_rowconfigure(0,weight=0)
+    canvas.grid(row=1,column=1,padx=20,pady=10)
+    label1.grid(row=1,column=2,sticky=TK.W,padx=20,pady=10)
+    button1.grid(row=1,column=1,sticky=TK.W,padx=20,pady=10)
+    button2.grid(row=1,column=1,sticky=TK.W,padx=20,pady=10)
+    button4.grid(row=1,column=2,sticky=TK.W,padx=20,pady=10)
+    button6.grid(row=1,column=1,sticky=TK.W,padx=20,pady=10)
+    button8.grid(row=2,column=1,sticky=TK.W,padx=20,pady=10)
+    button10.grid(row=1,column=1,sticky=TK.W,padx=20,pady=10)
+    button12.grid(row=1,column=1,sticky=TK.W,padx=20,pady=10)
+    button14.grid(row=1,column=3,sticky=TK.W,padx=20,pady=10)
+    button15.grid(row=1,column=4,sticky=TK.W,padx=20,pady=10)
+    Checkbutton1.grid(row=5,column=1,sticky=TK.W,padx=20,pady=10)
+    boxframe1.grid(row=1,column=1,columnspan=2,sticky=TK.EW)
+    boxframe2.grid(row=2,column=1,sticky=TK.W)
+    boxframe3.grid(row=2,column=2,sticky=TK.NS)
+    boxframe4.grid(row=3,column=1,columnspan=2,sticky=TK.EW)
+    boxframe5.grid(row=3,column=1,sticky=TK.EW)
+    boxframe6.grid(row=4,column=1,sticky=TK.EW)
+    win.mainloop()
