@@ -9,34 +9,42 @@ There are two versions of the PAT code in this folder. One is a standalone pytho
 
 [//]: <> (Here's what I've done so far to setup for klt/ml on MacOS Ventura 13.4.1, assuming a fresh-ish MacOS install:)
 
-Download ZIP file from https://github.com/Plant-Tracer/klt.git, and unzip the file. A folder titled ```klt-main``` should be there.
+Clone this source repository to your local machine:
+
+```
+git clone https://github.com/Plant-Tracer/PlantTracerML.git
+```
 
 Open Terminal and individually run in the following commands:
+
+If you don't already have brew, python3, and pip on your machine, you need them and here is one way to get them:
 ```
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 brew update && brew upgrade
 brew install python3
 brew install python-tk
 python3 -m pip install --upgrade pip
+```
+
+Install the python packages that PAT needs:
+```
+cd .....PlantTracerML
 python3 -m pip install -r requirements.txt
 ```
 
 # Running PAT
 
-Go to the downloaded folder ```klt-main``` folder. Locate the folder titled ```ml```.
+Open a Terminal window.
+Go your cloned repo folder named PlantTracerML, for example:
+```
+cd ~/git/PlantTracer/PlantTracerML
+```
 
-Copy the file path of the ```ml``` folder. To do this:
+Execute:
+```
+python3 PAT.py
+```
 
-1. Hold down **co ntrol** key.
-2. Click on the folder.
-3. Hold down the **option** key.
-4. Select ```Copy "ml" as Pathname``` in the menu.
-
-Reopen Terminal and type in ```cd ```, paste in your copied Pathname, and run the command.
-
-Repeat the same 4 steps for ```PAT.py``` within the ```ml``` folder.
-
-Reopen Terminal and type in ```python3 ```, paste in your copied Pathname, and run the command.
 
 # Using PAT
 Follow those steps to track the plant's movement:
