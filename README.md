@@ -7,8 +7,6 @@ There are two versions of the PAT code in this folder. One is a standalone pytho
 # Installation and Setup for PAT running in Python
 [//]: <> (These instructions don't consider setting up Python virtual environments or whether using Conda would have been a better call. A topic for another day.)
 
-[//]: <> (Here's what I've done so far to setup for klt/ml on MacOS Ventura 13.4.1, assuming a fresh-ish MacOS install:)
-
 Clone this source repository to your local machine:
 
 ```
@@ -26,7 +24,7 @@ brew install python-tk
 python3 -m pip install --upgrade pip
 ```
 
-It's a good idea to set up a separate Python virtual environment for PAT if you are doing development work.
+It's a good idea to set up a separate Python virtual environment for PAT if you are doing development work. This README doesn't present the details of that.
 
 Install the python packages that PAT needs:
 ```
