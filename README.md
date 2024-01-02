@@ -26,6 +26,8 @@ brew install python-tk
 python3 -m pip install --upgrade pip
 ```
 
+It's a good idea to set up a separate Python virtual environment for PAT if you are doing development work.
+
 Install the python packages that PAT needs:
 ```
 cd .....PlantTracerML
